@@ -144,7 +144,10 @@ void TCPTestHarness::send_data(const WrappingInt32 seqno, const WrappingInt32 ac
 void TCPTestHarness::execute(const TCPTestStep &step, std::string note) {
     try {
         step.execute(*this);
+        // cout<<"one step:"<<endl;
+        // cout<<step.to_string()<<endl;
         while (not _fsm.segments_out().empty()) {
+        //    cout<<_fsm.segments_out().front().header().to_string()<<endl;
             _flt.write(_fsm.segments_out().front());
             _fsm.segments_out().pop();
         }

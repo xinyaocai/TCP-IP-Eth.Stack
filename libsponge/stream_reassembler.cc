@@ -29,7 +29,8 @@ void StreamReassembler::copy_to_cache(const string &data, size_t begin_idx) {
 
 void StreamReassembler::push_substring(const string &data, const size_t index, const bool eof) {
     // 如果当前eof为真，那就计算保存eof的序列号
-    if (eof) _eof_idx = index + data.size();
+    if (eof) 
+        _eof_idx = index + data.size();
     string to_write;
     if (!data.empty()) {
         if (_wait_idx > index) {
@@ -37,6 +38,9 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
             for (size_t i = index; i < _wait_idx; i++)
                 if (_cache.count(i) && _cache[i] != data[i-index])
                     return;
+            // 存在overlap，但是当前data只是已重整串的子串，不需要append
+            if (index + data.size() <= _wait_idx)
+                return;
             // 存在overlap，写入overlap部分之外的子串
             to_write = data.substr(_wait_idx - index);
             copy_to_cache(to_write, _wait_idx);
