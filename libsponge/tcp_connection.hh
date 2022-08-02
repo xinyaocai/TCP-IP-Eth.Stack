@@ -23,7 +23,7 @@ class TCPConnection {
 
     bool _active{true};
 
-    void fill_and_send_segments(bool rst);
+    void fill_and_send_segments(bool must_send, bool rst);
 
     void reset_connect();
 
