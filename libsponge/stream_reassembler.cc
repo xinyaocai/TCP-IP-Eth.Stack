@@ -16,7 +16,7 @@ _wait_idx(0), _eof_idx(INT64_MAX), _output(capacity), _capacity(capacity), _cach
 
 void StreamReassembler::copy_to_cache(const string &data, size_t begin_idx) {
     size_t dup = 0, i = 0;
-    for (; i < data.size() && begin_idx+i < _capacity; i++) {
+    for (; i < data.size(); i++) {
         if (_cache.count(begin_idx+i) && data[i] == _cache[begin_idx+i]) {
             dup++;
         } else {
@@ -58,7 +58,7 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
             _unassem_bytes -= write_num;
             if (write_num==0 || !_cache.count(_wait_idx)) break;
             to_write.clear();
-            for (size_t i = _wait_idx; i < _capacity && _cache.count(i); i++) {
+            for (size_t i = _wait_idx; i < _eof_idx && _cache.count(i); i++) {
                 to_write += _cache[i];
             }
         }

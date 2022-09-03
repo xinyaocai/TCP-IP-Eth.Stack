@@ -18,9 +18,6 @@ void move_segments(TCPConnection &x, TCPConnection &y, vector<TCPSegment> &segme
     }
     if (reorder) {
         for (auto it = segments.rbegin(); it != segments.rend(); ++it) {
-            if ((it+1)==segments.rend()) {
-                cout<<"ok"<<endl;
-            }
             y.segment_received(move(*it));
         }
     } else {
@@ -42,7 +39,7 @@ void main_loop(const bool reorder) {
 
     Buffer bytes_to_send{string(string_to_send)};
     x.connect();
-    //y.end_input_stream();
+    y.end_input_stream();
 
     bool x_closed = false;
 
@@ -56,7 +53,6 @@ void main_loop(const bool reorder) {
         while (bytes_to_send.size() and x.remaining_outbound_capacity()) {
             const auto want = min(x.remaining_outbound_capacity(), bytes_to_send.size());
             const auto written = x.write(string(bytes_to_send.str().substr(0, want)));
-            //cout<<"want: "<<want<<". written: "<<written<<endl;
             if (want != written) {
                 throw runtime_error("want = " + to_string(want) + ", written = " + to_string(written));
             }
@@ -86,9 +82,7 @@ void main_loop(const bool reorder) {
 
     while (not y.inbound_stream().eof()) {
         loop();
-        //cout<<"in loop1"<<endl;
     }
-    cout<<"out loop1"<<endl;
 
     if (string_received != string_to_send) {
         throw runtime_error("strings sent vs. received don't match");
@@ -106,15 +100,13 @@ void main_loop(const bool reorder) {
 
     while (x.active() or y.active()) {
         loop();
-        cout<<"x: "<<x.active()<<", y: "<<y.active()<<endl;
     }
-    cout<<"out loop2"<<endl;
 }
 
 int main() {
     try {
-        //main_loop(false);
         main_loop(false);
+        main_loop(true);
     } catch (const exception &e) {
         cerr << e.what() << "\n";
         return EXIT_FAILURE;

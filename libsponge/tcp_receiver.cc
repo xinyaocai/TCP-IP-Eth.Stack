@@ -17,6 +17,10 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
         } else
             return;
     }
+
+    if (!_isn_valid)
+        return;
+
     if (header.fin) {
         if (_fin_valid || !_isn_valid)
             return;
