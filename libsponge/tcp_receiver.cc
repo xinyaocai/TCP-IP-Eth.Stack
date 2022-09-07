@@ -29,10 +29,16 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
     }
     // 减一是要减去syn占的一个字节，在重整串中标志位不占字节，但是在TCP流中标志位占字节
     uint64_t abs_seq_no = unwrap(header.seqno, _isn, _ckp);
-    if (!header.syn)
-        abs_seq_no--;
+    if (!header.syn) {
+        // 防止abs_seq_no为负数，这种情况是由用其他字节覆盖syn导致的
+        if (abs_seq_no > 0)
+            abs_seq_no--;
+        else
+            return;
+    }
 
-    _reassembler.push_substring(seg.payload().copy(), abs_seq_no, header.fin);
+    _reassembler.push_substring(seg.payload().copy().substr(0, _reassembler.ackno()+window_size()-abs_seq_no),
+                                abs_seq_no, header.fin);
     _ckp = _reassembler.ackno() - 1;
 }
 

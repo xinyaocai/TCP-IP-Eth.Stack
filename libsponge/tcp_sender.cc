@@ -52,7 +52,7 @@ void TCPSender::fill_window() {
         _stream.pop_output(payload_size);
         send_size += payload_size;
 
-        if (!_eof && _stream.eof() && _cur_window_size > send_size) {
+        if (!_eof && _stream.eof() && ((_cur_window_size > send_size) || (_try_window && (send_size==0)))) {
             header.fin = true;
             send_size++;
             _eof = true;
@@ -65,6 +65,8 @@ void TCPSender::fill_window() {
         _segments_fly.emplace_back(_curr_timestamp, segment);
         _next_seqno += send_size;
         _cur_window_size -= send_size;
+        if (_try_window)
+            return;
     }  
 }
 

@@ -84,12 +84,16 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
         _sender.stream_in().set_error();
         _active = false;
     }
-    // 只要对面发的包占序列号就需要回ack
-    if (seg.length_in_sequence_space() > 0)
-        fill_and_send_segments(true, false);
-    // 如果对面发的是不占序号的纯ack包，但是我这里buffer里还有未发送的数据，那就把这些数据都发了（ack掉的那些包腾出来发送窗口的位置了）
-    else if (header.ack && !_sender.stream_in().buffer_empty())
-        fill_and_send_segments(false, false);
+
+    // 只有当连接打开时才需要回复对面
+    if (_receiver.ackno().has_value()) {
+        // 只要对面发的包占序列号就需要回，起码要回ack
+        if (seg.length_in_sequence_space() > 0)
+            fill_and_send_segments(true, false);
+        // 如果对面发的是不占序号的纯ack包，但是我buffer里还有未发送的数据（包括FIN这种不在buffer里的数据），那就把这些数据都发了（ack掉的那些包腾出来发送窗口的位置了）
+        else if (header.ack && !_sender.eof())
+            fill_and_send_segments(false, false);
+    }
 }
 
 bool TCPConnection::active() const {
